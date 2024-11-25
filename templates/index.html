@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Sentiment Predictor</title>
+</head>
+<body>
+    <h1>Text Sentiment Prediction</h1>
+    <form id="predictionForm" enctype="multipart/form-data">
+        <input type="file" id="csvFileInput" name="file" accept=".csv">
+        <textarea id="textInput" name="text" placeholder="Enter text..."></textarea>
+        <button type="button" onclick="predict()">Predict</button>
+    </form>
+    <div id="predictionResult"></div>
+    <div id="graphContainer"></div>
+    <script>
+        function predict() {
+            var formData = new FormData(document.getElementById("predictionForm"));
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.predictions && data.graphs) {
+                    displayMultiplePredictions(data.predictions, data.graphs);
+                } else {
+                    document.getElementById("predictionResult").innerText = "Predicted sentiment: " + data.prediction;
+                    document.getElementById("graphContainer").innerHTML = '<img src="data:image/png;base64,' + data.graph + '" />';
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+
+        function displayMultiplePredictions(predictions, graphs) {
+            var resultHTML = "<h3>Predictions:</h3>";
+            for (var i = 0; i < predictions.length; i++) {
+                resultHTML += "<p>" + predictions[i] + "</p>";
+                resultHTML += '<img src="data:image/png;base64,' + graphs[i] + '" /><hr>';
+            }
+            document.getElementById("predictionResult").innerHTML = resultHTML;
+        }
+    </script>
+</body>
+</html>
